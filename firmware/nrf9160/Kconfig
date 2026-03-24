@@ -1,0 +1,63 @@
+# Copyright (c) 2024 Smart Pet Collar Tracker
+# SPDX-License-Identifier: Apache-2.0
+
+mainmenu "Smart Pet Collar nRF9160 Configuration"
+
+config SMART_COLLAR_GPS_ENABLE
+	bool "Enable GPS/GNSS subsystem"
+	default y
+	help
+	  Enable the nRF9160 modem GNSS interface for GPS fix acquisition
+	  and A-GPS data injection.
+
+config SMART_COLLAR_LTE_ENABLE
+	bool "Enable LTE connectivity"
+	default y
+	help
+	  Enable LTE-M / NB-IoT modem for cloud connectivity. Supports
+	  LTE-M as primary RAT with NB-IoT fallback.
+
+config SMART_COLLAR_CLOUD_ENABLE
+	bool "Enable cloud connector (MQTT/TLS)"
+	default y
+	depends on SMART_COLLAR_LTE_ENABLE
+	help
+	  Enable MQTT over TLS1.3 connection to AWS IoT Core for telemetry
+	  upload and command reception.
+
+config SMART_COLLAR_GEOFENCE_ENABLE
+	bool "Enable geofence engine"
+	default y
+	help
+	  Enable the on-device geofence engine supporting circular and polygon
+	  zones with NVS-backed persistence.
+
+config SMART_COLLAR_LED_ENABLE
+	bool "Enable LED controller"
+	default y
+	help
+	  Enable PWM-based RGB and white LED control with pattern animations.
+
+config SMART_COLLAR_POWER_MGMT
+	bool "Enable power management state machine"
+	default y
+	help
+	  Enable the power manager that coordinates GPS/LTE intervals, sensor
+	  ODR, and deep-sleep transitions based on activity and battery state.
+
+config SMART_COLLAR_LSM6DSO_ENABLE
+	bool "Enable LSM6DSO IMU driver"
+	default y
+	help
+	  Enable the custom I2C driver for the STMicroelectronics LSM6DSO
+	  6-axis IMU, including wake-on-motion and activity interrupts.
+
+config SMART_COLLAR_ACTIVITY_CLASSIFIER
+	bool "Enable activity classifier"
+	default y
+	depends on SMART_COLLAR_LSM6DSO_ENABLE
+	help
+	  Enable the on-device decision-tree activity classifier that processes
+	  accelerometer windows to detect rest, walk, run, play, and swim.
+
+source "Kconfig.zephyr"

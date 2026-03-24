@@ -1,0 +1,193 @@
+/*
+ * Copyright (c) 2024 Smart Pet Collar Tracker
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Device tree overlay for the Smart Pet Collar nRF9160 custom board.
+ */
+
+/ {
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+	};
+
+	/* RGB + White LED nodes driven by PWM */
+	leds {
+		compatible = "pwm-leds";
+
+		led_red: led_red {
+			pwms = <&pwm0 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+			label = "LED Red";
+		};
+
+		led_green: led_green {
+			pwms = <&pwm0 1 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+			label = "LED Green";
+		};
+
+		led_blue: led_blue {
+			pwms = <&pwm0 2 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+			label = "LED Blue";
+		};
+
+		led_white: led_white {
+			pwms = <&pwm1 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+			label = "LED White (Night Search)";
+		};
+	};
+
+	/* Battery voltage divider on ADC */
+	battery_voltage: battery-voltage {
+		compatible = "voltage-divider";
+		io-channels = <&adc 0>;
+		output-ohms = <1000000>;
+		full-ohms = <2000000>;
+		power-gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+/* ── I2C0: LSM6DSO IMU ──────────────────────────────────────────────────── */
+&i2c0 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	pinctrl-0 = <&i2c0_default>;
+	pinctrl-names = "default";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	lsm6dso: lsm6dso@6a {
+		compatible = "st,lsm6dso";
+		reg = <0x6a>;
+		irq-gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>,  /* INT1: wake-on-motion */
+		            <&gpio0 5 GPIO_ACTIVE_HIGH>;   /* INT2: activity       */
+		label = "LSM6DSO";
+	};
+};
+
+/* ── UART1: Bridge to nRF52840 at 1 Mbps ───────────────────────────────── */
+&uart1 {
+	compatible = "nordic,nrf-uarte";
+	status = "okay";
+	pinctrl-0 = <&uart1_default>;
+	pinctrl-names = "default";
+	current-speed = <1000000>;
+	hw-flow-control;
+};
+
+/* ── PWM0: RGB LED ──────────────────────────────────────────────────────── */
+&pwm0 {
+	status = "okay";
+	pinctrl-0 = <&pwm0_default>;
+	pinctrl-names = "default";
+};
+
+/* ── PWM1: White high-brightness LED ───────────────────────────────────── */
+&pwm1 {
+	status = "okay";
+	pinctrl-0 = <&pwm1_default>;
+	pinctrl-names = "default";
+};
+
+/* ── SPI3: W25Q128 NOR flash ────────────────────────────────────────────── */
+&spi3 {
+	compatible = "nordic,nrf-spim";
+	status = "okay";
+	pinctrl-0 = <&spi3_default>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
+
+	w25q128: w25q128jv@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <32000000>;
+		size = <DT_SIZE_M(128)>;
+		has-dpd;
+		t-enter-dpd = <3000>;
+		t-exit-dpd = <30000>;
+		jedec-id = [ef 40 18];
+		label = "W25Q128JV";
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			/* Offline GPS track log: 512 kB */
+			track_partition: partition@0 {
+				label = "track-log";
+				reg = <0x00000000 DT_SIZE_K(512)>;
+			};
+
+			/* Reserved for future use / OTA staging */
+			storage_partition: partition@80000 {
+				label = "storage";
+				reg = <0x00080000 0x00F80000>;
+			};
+		};
+	};
+};
+
+/* ── ADC: battery measurement ───────────────────────────────────────────── */
+&adc {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN1>;
+		zephyr,resolution = <12>;
+		zephyr,oversampling = <8>;
+	};
+};
+
+/* ── Pin control ────────────────────────────────────────────────────────── */
+&pinctrl {
+	i2c0_default: i2c0_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 26)>,
+			        <NRF_PSEL(TWIM_SCL, 0, 27)>;
+		};
+	};
+
+	uart1_default: uart1_default {
+		group1 {
+			psels = <NRF_PSEL(UART_TX,  0, 1)>,
+			        <NRF_PSEL(UART_RTS, 0, 2)>;
+		};
+		group2 {
+			psels = <NRF_PSEL(UART_RX,  0, 0)>,
+			        <NRF_PSEL(UART_CTS, 0, 3)>;
+			bias-pull-up;
+		};
+	};
+
+	pwm0_default: pwm0_default {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 10)>,  /* Red   */
+			        <NRF_PSEL(PWM_OUT1, 0, 11)>,  /* Green */
+			        <NRF_PSEL(PWM_OUT2, 0, 12)>;  /* Blue  */
+		};
+	};
+
+	pwm1_default: pwm1_default {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 13)>;  /* White */
+		};
+	};
+
+	spi3_default: spi3_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK,  0, 19)>,
+			        <NRF_PSEL(SPIM_MOSI, 0, 20)>;
+		};
+		group2 {
+			psels = <NRF_PSEL(SPIM_MISO, 0, 21)>;
+			bias-pull-down;
+		};
+	};
+};
