@@ -1,0 +1,23 @@
+mainmenu "Smart Collar nRF52840 Configuration"
+
+config SMART_COLLAR_BLE_ENABLE
+    bool "Enable BLE functionality"
+    default y
+
+config SMART_COLLAR_DFU_ENABLE
+    bool "Enable DFU/OTA functionality"
+    default y
+
+config SMART_COLLAR_FLASH_ENABLE
+    bool "Enable external flash storage"
+    default y
+
+config SMART_COLLAR_CHARGE_ENABLE
+    bool "Enable charge manager"
+    default y
+
+config SMART_COLLAR_BEACON_ENABLE
+    bool "Enable iBeacon advertising"
+    default y
+
+source "Kconfig.zephyr"
