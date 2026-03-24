@@ -138,6 +138,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await StorageService.saveSetting('healthAlertsEnabled', enabled);
   }
 
+  Future<void> setBatteryAlerts(bool enabled) async {
+    state = state.copyWith(batteryAlertsEnabled: enabled);
+    await StorageService.saveSetting('batteryAlertsEnabled', enabled);
+  }
+
+  Future<void> setActivityGoal(bool enabled) async {
+    state = state.copyWith(activityGoalEnabled: enabled);
+    await StorageService.saveSetting('activityGoalEnabled', enabled);
+  }
+
   Future<void> setPrivacyConsent(bool given) async {
     state = state.copyWith(privacyConsentGiven: given);
     await StorageService.saveSetting('privacyConsentGiven', given);

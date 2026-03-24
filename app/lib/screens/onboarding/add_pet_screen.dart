@@ -205,7 +205,7 @@ class _PetTypeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isdog = type == PetType.dog;
+    final isDog = type == PetType.dog;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -226,13 +226,13 @@ class _PetTypeButton extends StatelessWidget {
           child: Column(
             children: [
               Icon(
-                isdog ? Icons.pets : Icons.set_meal,
+                isDog ? Icons.pets : Icons.set_meal,
                 size: 32,
                 color: selected ? Colors.white : null,
               ),
               const SizedBox(height: 4),
               Text(
-                isdog ? 'Dog' : 'Cat',
+                isDog ? 'Dog' : 'Cat',
                 style: TextStyle(
                   color: selected ? Colors.white : null,
                   fontWeight:

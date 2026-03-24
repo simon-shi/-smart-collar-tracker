@@ -47,7 +47,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
             value: settings.batteryAlertsEnabled &&
                 settings.notificationsEnabled,
             onChanged: settings.notificationsEnabled
-                ? (v) => notifier.setGeofenceAlerts(v)
+                ? notifier.setBatteryAlerts
                 : null,
           ),
           const Divider(height: 1),
@@ -56,7 +56,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
             subtitle: const Text('When your pet reaches daily activity goals'),
             value: settings.activityGoalEnabled && settings.notificationsEnabled,
             onChanged: settings.notificationsEnabled
-                ? (v) => notifier.setGeofenceAlerts(v)
+                ? notifier.setActivityGoal
                 : null,
           ),
         ],

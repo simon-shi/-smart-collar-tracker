@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +9,7 @@ import '../../providers/pet_provider.dart';
 import '../../services/ble/ble_protocol.dart';
 import '../../config/theme.dart';
 import '../../utils/geo_utils.dart';
+import 'widgets/compass_widget.dart';
 
 class FindPetScreen extends ConsumerStatefulWidget {
   const FindPetScreen({super.key});
@@ -76,7 +76,7 @@ class _FindPetScreenState extends ConsumerState<FindPetScreen> {
         child: Column(
           children: [
             // Compass
-            _CompassWidget(bearing: _bearing),
+            CompassWidget(bearing: _bearing),
             const SizedBox(height: 24),
             // Distance
             Card(
@@ -156,72 +156,6 @@ class _FindPetScreenState extends ConsumerState<FindPetScreen> {
             ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _CompassWidget extends StatelessWidget {
-  final double bearing;
-
-  const _CompassWidget({required this.bearing});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 200,
-      height: 200,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.primary.withOpacity(0.3),
-                width: 2,
-              ),
-            ),
-          ),
-          // Compass rose labels
-          ...['N', 'E', 'S', 'W'].asMap().entries.map((e) {
-            final angle = e.key * pi / 2;
-            final r = 80.0;
-            return Positioned(
-              left: 100 + r * sin(angle) - 8,
-              top: 100 - r * cos(angle) - 8,
-              child: Text(
-                e.value,
-                style: TextStyle(
-                  color: e.value == 'N' ? AppColors.error : Colors.grey,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            );
-          }),
-          // Direction arrow
-          Transform.rotate(
-            angle: bearing * pi / 180,
-            child: const Icon(
-              Icons.navigation,
-              size: 64,
-              color: AppColors.primary,
-            ),
-          ),
-          // Pet icon in center
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.pets, size: 24, color: AppColors.primary),
-          ),
-        ],
       ),
     );
   }
